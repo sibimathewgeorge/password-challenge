@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>60-Second Password Challenge</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.22.5/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .gradient-text {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        // Icons as simple SVGs
+        const Shield = () => (
+            <svg className="w-10 h-10 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+        );
+
+        const Award = () => (
+            <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
+            </svg>
+        );
+
+        const AlertTriangle = () => (
+            <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5l-6.928-12c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+        );
+
+        const CheckCircle = () => (
+            <svg className="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+        );
+
+        const XCircle = () => (
+            <svg className="w-5 h-5 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+            </svg>
+        );
+
+        const Eye = () => (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+        );
+
+        const EyeOff = () => (
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+            </svg>
+        );
+
+        const PasswordStrengthGame = () => {
+            const [password, setPassword] = useState('');
+            const [confirmPassword, setConfirmPassword] = useState('');
+            const [showPassword, setShowPassword] = useState(false);
+            const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+            const [score, setScore] = useState(0);
+            const [showHints, setShowHints] = useState(true);
+            const [timeLeft, setTimeLeft] = useState(60);
+            const [gameActive, setGameActive] = useState(false);
+            const [gameCompleted, setGameCompleted] = useState(false);
+            const [finalScore, setFinalScore] = useState(0);
+            const [gameStats, setGameStats] = useState({
+                gamesPlayed: 0,
+                averageScore: 0,
+                bestScore: 0,
+                perfectGames: 0
+            });
+
+            const criteria = [
+                { id: 'length', label: 'At least 8 characters', test: (pwd) => pwd.length >= 8, points: 10 },
+                { id: 'uppercase', label: 'Contains uppercase letter', test: (pwd) => /[A-Z]/.test(pwd), points: 15 },
+                { id: 'lowercase', label: 'Contains lowercase letter', test: (pwd) => /[a-z]/.test(pwd), points: 15 },
+                { id: 'numbers', label: 'Contains numbers', test: (pwd) => /\d/.test(pwd), points: 15 },
+                { id: 'special', label: 'Contains special characters (!@#$%^&*)', test: (pwd) => /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(pwd), points: 20 },
+                { id: 'length12', label: 'At least 12 characters (bonus)', test: (pwd) => pwd.length >= 12, points: 25 },
+                { id: 'noCommon', label: 'Avoids common patterns', test: (pwd) => !/(password|123456|qwerty|admin|welcome)/i.test(pwd), points: 30 },
+                { id: 'matching', label: 'Passwords match', test: (pwd) => pwd === confirmPassword && pwd.length > 0, points: 15 }
+            ];
+
+            const commonWeakPatterns = ['password', '123456', 'qwerty', 'admin', 'welcome', 'letmein', 'monkey', 'dragon'];
+
+            const calculateStrength = (pwd) => {
+                if (!pwd) return { score: 0, level: 'None', color: 'bg-gray-300' };
+                
+                let totalScore = 0;
+                criteria.forEach(criterion => {
+                    if (criterion.test(pwd)) {
+                        totalScore += criterion.points;
+                    }
+                });
+
+                const hasCommonPattern = commonWeakPatterns.some(pattern => 
+                    pwd.toLowerCase().includes(pattern.toLowerCase())
+                );
+                if (hasCommonPattern) totalScore = Math.max(0, totalScore - 40);
+
+                if (pwd.length >= 16) totalScore += 15;
+
+                if (totalScore >= 135) return { score: totalScore, level: 'Legendary', color: 'bg-gradient-to-r from-purple-500 to-pink-500' };
+                if (totalScore >= 115) return { score: totalScore, level: 'Expert', color: 'bg-gradient-to-r from-green-400 to-blue-500' };
+                if (totalScore >= 90) return { score: totalScore, level: 'Strong', color: 'bg-green-500' };
+                if (totalScore >= 50) return { score: totalScore, level: 'Good', color: 'bg-yellow-500' };
+                if (totalScore >= 25) return { score: totalScore, level: 'Fair', color: 'bg-orange-500' };
+                return { score: totalScore, level: 'Weak', color: 'bg-red-500' };
+            };
+
+            const strength = calculateStrength(password);
+
+            useEffect(() => {
+                let timer;
+                if (gameActive && timeLeft > 0) {
+                    timer = setTimeout(() => {
+                        setTimeLeft(timeLeft - 1);
+                    }, 1000);
+                } else if (gameActive && timeLeft === 0) {
+                    endGame();
+                }
+                return () => clearTimeout(timer);
+            }, [gameActive, timeLeft]);
+
+            useEffect(() => {
+                setScore(strength.score);
+            }, [strength.score]);
+
+            const startGame = () => {
+                setGameActive(true);
+                setGameCompleted(false);
+                setTimeLeft(60);
+                setPassword('');
+                setConfirmPassword('');
+                setScore(0);
+            };
+
+            const endGame = () => {
+                setGameActive(false);
+                setGameCompleted(true);
+                const currentScore = strength.score;
+                setFinalScore(currentScore);
+                
+                setGameStats(prev => ({
+                    gamesPlayed: prev.gamesPlayed + 1,
+                    averageScore: Math.round((prev.averageScore * prev.gamesPlayed + currentScore) / (prev.gamesPlayed + 1)),
+                    bestScore: Math.max(prev.bestScore, currentScore),
+                    perfectGames: currentScore >= 135 ? prev.perfectGames + 1 : prev.perfectGames
+                }));
+            };
+
+            const getTimeColor = () => {
+                if (timeLeft > 40) return 'text-green-600';
+                if (timeLeft > 20) return 'text-yellow-600';
+                return 'text-red-600';
+            };
+
+            const getScoreMessage = (score) => {
+                if (score >= 135) return "🏆 Perfect! You're a password master!";
+                if (score >= 115) return "🌟 Excellent! Almost perfect!";
+                if (score >= 90) return "✅ Great job! Strong password created!";
+                if (score >= 50) return "👍 Good effort! Keep improving!";
+                return "💪 Keep practicing! You can do better!";
+            };
+
+            const challenges = [
+                { id: 1, name: 'Basic Security', target: 50, description: 'Create a password scoring at least 50 points' },
+                { id: 2, name: 'Strong Defense', target: 90, description: 'Create a password scoring at least 90 points' },
+                { id: 3, name: 'Expert Level', target: 115, description: 'Create a password scoring at least 115 points' },
+                { id: 4, name: 'Legendary Master', target: 135, description: 'Create a password scoring at least 135 points' }
+            ];
+
+            const currentChallenge = challenges.find(c => strength.score < c.target) || challenges[challenges.length - 1];
+
+            const resetGame = () => {
+                setPassword('');
+                setConfirmPassword('');
+                setScore(0);
+                setGameActive(false);
+                setGameCompleted(false);
+                setTimeLeft(60);
+                setFinalScore(0);
+            };
+
+            return (
+                <div className="max-w-4xl mx-auto p-6 min-h-screen">
+                    <div className="bg-white rounded-2xl shadow-xl p-8">
+                        <div className="text-center mb-8">
+                            <div className="flex justify-center items-center gap-3 mb-4">
+                                <Shield />
+                                <h1 className="text-4xl font-bold gradient-text">
+                                    60-Second Password Challenge
+                                </h1>
+                            </div>
+                            <p className="text-gray-600 text-lg">Test your password creation skills in 60 seconds!</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                            <div className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-xl text-center">
+                                <div className="text-2xl font-bold">{gameStats.gamesPlayed}</div>
+                                <div className="text-sm opacity-90">Games Played</div>
+                            </div>
+                            <div className="bg-gradient-to-r from-green-500 to-green-600 text-white p-4 rounded-xl text-center">
+                                <div className="text-2xl font-bold">{gameStats.averageScore}</div>
+                                <div className="text-sm opacity-90">Average Score</div>
+                            </div>
+                            <div className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-4 rounded-xl text-center">
+                                <div className="text-2xl font-bold">{gameStats.bestScore}</div>
+                                <div className="text-sm opacity-90">Best Score</div>
+                            </div>
+                            <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 text-white p-4 rounded-xl text-center">
+                                <div className="text-2xl font-bold">{gameStats.perfectGames}</div>
+                                <div className="text-sm opacity-90">Perfect Games</div>
+                            </div>
+                        </div>
+
+                        <div className="text-center mb-8">
+                            {!gameActive && !gameCompleted && (
+                                <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-8 rounded-2xl border border-indigo-200">
+                                    <h2 className="text-2xl font-bold text-indigo-800 mb-4">Are you ready?</h2>
+                                    <p className="text-indigo-700 mb-6">Create the strongest possible password in just 60 seconds. Can you reach 135 points?</p>
+                                    <button
+                                        onClick={startGame}
+                                        className="px-8 py-4 bg-gradient-to-r from-green-500 to-blue-500 text-white font-bold text-xl rounded-xl hover:from-green-600 hover:to-blue-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                                    >
+                                        🚀 Start Challenge!
+                                    </button>
+                                </div>
+                            )}
+
+                            {gameActive && (
+                                <div className="bg-gradient-to-r from-red-50 to-orange-50 p-6 rounded-2xl border-2 border-red-200">
+                                    <div className="flex items-center justify-center gap-4 mb-4">
+                                        <div className={`text-6xl font-bold ${getTimeColor()}`}>
+                                            {timeLeft}
+                                        </div>
+                                        <div className="text-gray-700">
+                                            <div className="text-lg font-semibold">seconds left</div>
+                                            <div className="text-sm">Current Score: {score} pts</div>
+                                        </div>
+                                    </div>
+                                    <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
+                                        <div 
+                                            className="bg-gradient-to-r from-red-500 to-orange-500 h-3 rounded-full transition-all duration-1000 ease-linear"
+                                            style={{ width: `${(timeLeft / 60) * 100}%` }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {gameCompleted && (
+                                <div className="bg-gradient-to-r from-green-50 to-blue-50 p-8 rounded-2xl border border-green-200">
+                                    <h2 className="text-3xl font-bold text-green-800 mb-4">Time's Up!</h2>
+                                    <div className="text-6xl font-bold text-green-600 mb-4">{finalScore}</div>
+                                    <p className="text-xl text-green-700 mb-6">{getScoreMessage(finalScore)}</p>
+                                    <div className="flex gap-4 justify-center">
+                                        <button
+                                            onClick={startGame}
+                                            className="px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-purple-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                                        >
+                                            🔄 Play Again
+                                        </button>
+                                        <button
+                                            onClick={resetGame}
+                                            className="px-6 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white font-semibold rounded-xl hover:from-gray-600 hover:to-gray-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                                        >
+                                            🏠 Main Menu
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        {gameActive && (
+                            <div className="bg-gradient-to-r from-indigo-50 to-purple-50 p-6 rounded-xl mb-8 border border-indigo-200">
+                                <div className="flex items-center gap-3 mb-2">
+                                    <Award />
+                                    <h3 className="text-xl font-bold text-indigo-800">Current Challenge: {currentChallenge.name}</h3>
+                                </div>
+                                <p className="text-indigo-700 mb-3">{currentChallenge.description}</p>
+                                <div className="w-full bg-indigo-200 rounded-full h-3">
+                                    <div 
+                                        className="bg-gradient-to-r from-indigo-500 to-purple-500 h-3 rounded-full transition-all duration-500 ease-out"
+                                        style={{ width: `${Math.min(100, (strength.score / currentChallenge.target) * 100)}%` }}
+                                    ></div>
+                                </div>
+                                <p className="text-sm text-indigo-600 mt-2">{strength.score}/{currentChallenge.target} points</p>
+                            </div>
+                        )}
+
+                        {gameActive && (
+                            <div className="mb-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-lg font-semibold text-gray-700 mb-3">Enter your password:</label>
+                                        <div className="relative">
+                                            <input
+                                                type={showPassword ? 'text' : 'password'}
+                                                value={password}
+                                                onChange={(e) => setPassword(e.target.value)}
+                                                className="w-full p-4 pr-12 border-2 border-gray-300 rounded-xl text-lg focus:border-indigo-500 focus:outline-none transition-colors"
+                                                placeholder="Type your password here..."
+                                            />
+                                            <button
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                            >
+                                                {showPassword ? <EyeOff /> : <Eye />}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label className="block text-lg font-semibold text-gray-700 mb-3">Confirm password:</label>
+                                        <div className="relative">
+                                            <input
+                                                type={showConfirmPassword ? 'text' : 'password'}
+                                                value={confirmPassword}
+                                                onChange={(e) => setConfirmPassword(e.target.value)}
+                                                className={`w-full p-4 pr-12 border-2 rounded-xl text-lg focus:outline-none transition-colors ${
+                                                    confirmPassword === '' ? 'border-gray-300 focus:border-indigo-500' :
+                                                    password === confirmPassword ? 'border-green-500 focus:border-green-600 bg-green-50' :
+                                                    'border-red-500 focus:border-red-600 bg-red-50'
+                                                }`}
+                                                placeholder="Confirm your password..."
+                                            />
+                                            <button
+                                                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                            >
+                                                {showConfirmPassword ? <EyeOff /> : <Eye />}
+                                            </button>
+                                        </div>
+                                        {confirmPassword && (
+                                            <div className="mt-2 flex items-center gap-2">
+                                                {password === confirmPassword ? (
+                                                    <>
+                                                        <CheckCircle />
+                                                        <span className="text-green-700 font-medium">Passwords match!</span>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <XCircle />
+                                                        <span className="text-red-700 font-medium">Passwords don't match</span>
+                                                    </>
+                                                )}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {gameActive && (
+                            <div className="mb-8">
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-lg font-semibold text-gray-700">Password Strength:</span>
+                                    <span className={`px-4 py-2 rounded-full text-white font-bold text-lg ${strength.color}`}>
+                                        {strength.level} ({strength.score} pts)
+                                    </span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden">
+                                    <div 
+                                        className={`h-4 rounded-full transition-all duration-700 ease-out ${strength.color}`}
+                                        style={{ width: `${Math.min(100, (strength.score / 135) * 100)}%` }}
+                                    ></div>
+                                </div>
+                            </div>
+                        )}
+
+                        {gameActive && (
+                            <div className="mb-8">
+                                <h3 className="text-xl font-bold text-gray-800 mb-4">Security Criteria:</h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                    {criteria.map((criterion) => {
+                                        const passed = criterion.test(password);
+                                        return (
+                                            <div key={criterion.id} className={`flex items-center gap-3 p-3 rounded-lg transition-all ${
+                                                passed ? 'bg-green-50 border border-green-200' : 'bg-gray-50 border border-gray-200'
+                                            }`}>
+                                                {passed ? <CheckCircle /> : <XCircle />}
+                                                <span className={`${passed ? 'text-green-800 font-medium' : 'text-gray-600'}`}>
+                                                    {criterion.label}
+                                                </span>
+                                                <span className={`ml-auto text-sm font-bold ${passed ? 'text-green-600' : 'text-gray-400'}`}>
+                                                    +{criterion.points}
+                                                </span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {gameActive && (
+                            <div className="flex flex-wrap gap-4 justify-center mb-8">
+                                <button
+                                    onClick={() => setShowHints(!showHints)}
+                                    className="px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold rounded-xl hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                                >
+                                    {showHints ? 'Hide' : 'Show'} Hints
+                                </button>
+                                <button
+                                    onClick={endGame}
+                                    className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold rounded-xl hover:from-red-600 hover:to-red-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
+                                >
+                                    🏁 End Game Early
+                                </button>
+                            </div>
+                        )}
+
+                        {gameActive && showHints && (
+                            <div className="mt-8 bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-xl border border-yellow-200">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <AlertTriangle />
+                                    <h3 className="text-xl font-bold text-yellow-800">Pro Tips:</h3>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-yellow-700">
+                                    <div>
+                                        <h4 className="font-semibold mb-2">🔒 Make it Strong:</h4>
+                                        <ul className="space-y-1 text-sm">
+                                            <li>• Use a mix of uppercase and lowercase letters</li>
+                                            <li>• Include numbers and special characters</li>
+                                            <li>• Make it at least 12 characters long</li>
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <h4 className="font-semibold mb-2">❌ Avoid These:</h4>
+                                        <ul className="space-y-1 text-sm">
+                                            <li>• Common words like "password" or "admin"</li>
+                                            <li>• Sequential numbers like "123456"</li>
+                                            <li>• Keyboard patterns like "qwerty"</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        ReactDOM.render(<PasswordStrengthGame />, document.getElementById('root'));
+    </script>
+</body>
+</html>
